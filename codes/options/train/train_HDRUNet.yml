@@ -1,22 +1,23 @@
 #### general settings
-name: HDRUNet_tanh_l1_bs_16_ps_160
+name: HDRUNet_tanh_l1_bs_48_ps_160
 model: condition
 use_tb_logger: true
 distortion: sr
 scale: 1
-gpu_ids: [0]
+gpu_ids: [2]
 
 #### datasets
 datasets:
   train:
     name: Single_LDR2HDR
     mode: LQGT_condition
+    debug: false
     dataroot_LQ: /mnt/diskc/even/Ldr2HdrData/medium_sub
     dataroot_GT: /mnt/diskc/even/Ldr2HdrData/gt_sub
     dataroot_ratio: /data0/NTIRE2021_HDR/000_Train_SingleFrame_FirstStage/alignratio
     use_shuffle: true
-    n_workers: 4 #  8
-    batch_size: 16
+    n_workers: 8 #  8, 4
+    batch_size: 48  # 16
     GT_size: 160
     use_flip: true
     use_rot: true
@@ -41,6 +42,8 @@ network_G:
 path:
   root: ./
   # pretrain_model_G: ../experiments/...
+#  pretrain_model_G: ../pretrained_models/pretrained_model.pth
+  pretrain_model_G: ../pretrained_models/400_G.pth
   strict_load: false
   # resume_state: ../experiments/...
 
@@ -50,7 +53,7 @@ train:
   lr_scheme: MultiStepLR # MultiStepLR | CosineAnnealingLR_Restart
   beta1: 0.9
   beta2: 0.99
-  niter: 1000000 # 600000 
+  niter: 1000000  # 600000
   warmup_iter: -1  # no warm up
 
 #  lr_scheme: MultiStepLR
@@ -65,5 +68,5 @@ train:
 
 #### logger
 logger:
-  print_freq: 100
-  save_checkpoint_freq: !!float 5e3
+  print_freq: 10
+  save_checkpoint_freq: !!float 1000 # 5e3

@@ -1,21 +1,22 @@
-import os
-import math
+# encoding=utf-8
+
 import argparse
-import random
 import logging
+import os
+import random
 import time
 
+import math
+import numpy as np
+import options.options as option
 import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
 from data.data_sampler import DistIterSampler
+from codes.utils import util
 
-import options.options as option
-from utils import util
 from codes.data import create_dataloader, create_dataset
-from models import create_model
-
-import numpy as np
+from codes.models import create_model
 
 
 def init_dist(backend='nccl', **kwargs):
@@ -28,7 +29,9 @@ def init_dist(backend='nccl', **kwargs):
     # if mp.get_start_method(allow_none=True) is None:
     if mp.get_start_method(allow_none=True) != 'spawn':
         mp.set_start_method('spawn')
+
     rank = int(os.environ['RANK'])
+    print('Rank: ', rank)
     num_gpus = torch.cuda.device_count()
     torch.cuda.set_device(rank % num_gpus)
     dist.init_process_group(backend=backend, **kwargs)
@@ -37,16 +40,19 @@ def init_dist(backend='nccl', **kwargs):
 def main():
     #### options
     parser = argparse.ArgumentParser()
+
     parser.add_argument('-opt',
                         type=str,
                         default='./options/train/train_HDRUNet.yml',
                         help='Path to option YMAL file.')
     parser.add_argument('--launcher',
-                        choices=['none', 'pytorch'], default='none',
+                        choices=['none', 'pytorch'],
+                        default='none',
                         help='job launcher')
     parser.add_argument('--local_rank',
                         type=int,
                         default=0)
+
     args = parser.parse_args()
     opt = option.parse(args.opt, is_train=True)
 
@@ -74,18 +80,26 @@ def main():
     #### mkdir and loggers
     if rank <= 0:  # normal training (rank -1) OR distributed training (rank 0)
         if resume_state is None:
-            util.mkdir_and_rename(
-                opt['path']['experiments_root'])  # rename experiment folder if exists
+            util.mkdir_and_rename(opt['path']['experiments_root'])  # rename experiment folder if exists
             util.mkdirs((path for key, path in opt['path'].items() if not key == 'experiments_root'
                          and 'pretrain_model' not in key and 'resume' not in key))
 
         # config loggers. Before it, the log will not work
-        util.setup_logger('base', opt['path']['log'], 'train_' + opt['name'], level=logging.INFO,
-                          screen=True, tofile=True)
-        util.setup_logger('val', opt['path']['log'], 'val_' + opt['name'], level=logging.INFO,
-                          screen=True, tofile=True)
+        util.setup_logger('base',
+                          opt['path']['log'],
+                          'train_' + opt['name'],
+                          level=logging.INFO,
+                          screen=True,
+                          tofile=True)
+        util.setup_logger('val',
+                          opt['path']['log'],
+                          'val_' + opt['name'],
+                          level=logging.INFO,
+                          screen=True,
+                          tofile=True)
         logger = logging.getLogger('base')
         logger.info(option.dict2str(opt))
+
         # tensorboard logger
         if opt['use_tb_logger'] and 'debug' not in opt['name']:
             version = float(torch.__version__[0:3])
@@ -96,7 +110,7 @@ def main():
                     'You are using PyTorch {}. Tensorboard will use [tensorboardX]'.format(version))
                 from tensorboardX import SummaryWriter
             tb_logger = SummaryWriter(log_dir=os.path.join(opt['path']['root'], 'tb_logger', opt['name']))
-            #tb_logger = SummaryWriter(log_dir=  + '/tb_logger/' + opt['name'])
+            # tb_logger = SummaryWriter(log_dir=  + '/tb_logger/' + opt['name'])
     else:
         util.setup_logger('base', opt['path']['log'], 'train', level=logging.INFO, screen=True)
         logger = logging.getLogger('base')
@@ -119,7 +133,9 @@ def main():
     dataset_ratio = 200  # enlarge the size of each epoch
     for phase, dataset_opt in opt['datasets'].items():
         if phase == 'train':
+            ## Set up dataset
             train_set = create_dataset(dataset_opt)
+
             train_size = int(math.ceil(len(train_set) / dataset_opt['batch_size']))
             total_iters = int(opt['train']['niter'])
             total_epochs = int(math.ceil(total_iters / train_size))
@@ -128,7 +144,10 @@ def main():
                 total_epochs = int(math.ceil(total_iters / (train_size * dataset_ratio)))
             else:
                 train_sampler = None
+
+            ## Set up dataloader
             train_loader = create_dataloader(train_set, dataset_opt, opt, train_sampler)
+
             if rank <= 0:
                 logger.info('Number of train images: {:,d}, iters: {:,d}'.format(
                     len(train_set), train_size))
@@ -142,6 +161,7 @@ def main():
                     dataset_opt['name'], len(val_set)))
         else:
             raise NotImplementedError('Phase [{:s}] is not recognized.'.format(phase))
+
     assert train_loader is not None
 
     #### create model
@@ -172,11 +192,11 @@ def main():
             current_step += 1
             if current_step > total_iters:
                 break
-            
+
             #### training
             model.feed_data(train_data)
             model.optimize_parameters(current_step)
-            
+
             #### update learning rate
             model.update_learning_rate(current_step, warmup_iter=opt['train']['warmup_iter'])
 
@@ -185,7 +205,7 @@ def main():
                 end_time = time.time()
                 logs = model.get_current_log()
                 message = '<epoch:{:3d}, iter:{:8,d}, lr:{:.3e}, , time:{:.3f}> '.format(
-                    epoch, current_step, model.get_current_learning_rate(), end_time-start_time)
+                    epoch, current_step, model.get_current_learning_rate(), end_time - start_time)
                 for k, v in logs.items():
                     message += '{:s}: {:.4e} '.format(k, v)
                     # tensorboard logger
@@ -213,8 +233,8 @@ def main():
 
                     visuals = model.get_current_visuals()
 
-                    sr_img = util.tensor2numpy(visuals['SR']) # float32
-                    gt_img = util.tensor2numpy(visuals['GT']) # float32
+                    sr_img = util.tensor2numpy(visuals['SR'])  # float32
+                    gt_img = util.tensor2numpy(visuals['GT'])  # float32
 
                     # calculate PSNR
                     avg_psnr += util.calculate_psnr(sr_img, gt_img)
@@ -226,16 +246,18 @@ def main():
                 avg_tonemapped_psnr = avg_tonemapped_psnr / idx
 
                 # log
-                logger.info('# Validation # PSNR: {:.4e}, norm_PSNR: {:.4e}, mu_PSNR: {:.4e}'.format(avg_psnr, avg_normalized_psnr, avg_tonemapped_psnr))
+                logger.info('# Validation # PSNR: {:.4e}, norm_PSNR: {:.4e}, mu_PSNR: {:.4e}'.format(avg_psnr,
+                                                                                                     avg_normalized_psnr,
+                                                                                                     avg_tonemapped_psnr))
                 logger_val = logging.getLogger('val')  # validation logger
                 logger_val.info('<epoch:{:3d}, iter:{:8,d}> psnr: {:.4e} norm_PSNR: {:.4e} mu_PSNR: {:.4e}'.format(
                     epoch, current_step, avg_psnr, avg_normalized_psnr, avg_tonemapped_psnr))
+
                 # tensorboard logger
                 if opt['use_tb_logger'] and 'debug' not in opt['name']:
                     tb_logger.add_scalar('psnr', avg_psnr, current_step)
                     tb_logger.add_scalar('norm_PSNR', avg_normalized_psnr, current_step)
                     tb_logger.add_scalar('mu_PSNR', avg_tonemapped_psnr, current_step)
-                
 
             #### save models and training states
             if current_step % opt['logger']['save_checkpoint_freq'] == 0:

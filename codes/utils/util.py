@@ -1,19 +1,17 @@
 # encoding=utf-8
 
-import os
-import sys
-import time
-import math
-from datetime import datetime
-import random
 import logging
+import os
+import random
 from collections import OrderedDict
-import numpy as np
-import cv2
-import torch
-from shutil import get_terminal_size
+from datetime import datetime
 
+import cv2
+import math
+import numpy as np
+import torch
 import yaml
+
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -41,15 +39,26 @@ def OrderedYaml():
 
 
 def get_timestamp():
+    """
+    :return:
+    """
     return datetime.now().strftime('%y%m%d-%H%M%S')
 
 
 def mkdir(path):
+    """
+    :param path:
+    :return:
+    """
     if not os.path.exists(path):
         os.makedirs(path)
 
 
 def mkdirs(paths):
+    """
+    :param paths:
+    :return:
+    """
     if isinstance(paths, str):
         mkdir(paths)
     else:
@@ -58,12 +67,19 @@ def mkdirs(paths):
 
 
 def mkdir_and_rename(path):
+    """
+    :param path:
+    :return:
+    """
     if os.path.exists(path):
         new_name = path + '_archived_' + get_timestamp()
         print('Path already exists. Rename it to [{:s}]'.format(new_name))
+
         logger = logging.getLogger('base')
         logger.info('Path already exists. Rename it to [{:s}]'.format(new_name))
+
         os.rename(path, new_name)
+        print('{:s} renamed to {:s}.'.format(path, new_name))
     os.makedirs(path)
 
 
@@ -108,7 +124,7 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
         img_np = tensor.numpy()
         img_np = np.transpose(img_np[[2, 1, 0], :, :], (1, 2, 0))  # HWC, BGR
     elif n_dim == 2:
-        #img_np = tensor.numpy()
+        # img_np = tensor.numpy()
         img_np = tensor.numpy()
         img_np = np.expand_dims(img_np, axis=2)
         img_np = np.transpose(img_np[[2, 1, 0], :, :], (1, 2, 0))  # HWC, BGR
@@ -125,25 +141,53 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
 
 
 def tensor2numpy(tensor):
+    """
+    :param tensor:
+    :return:
+    """
     img_np = tensor.numpy()
     img_np[img_np < 0] = 0
     img_np = np.transpose(img_np[[2, 1, 0], :, :], (1, 2, 0))  # HWC, BGR
     return img_np.astype(np.float32)
 
+
 def save_img_with_ratio(image_path, image, alignratio_path):
-    align_ratio = (2 ** 16 - 1) / image.max()
+    """
+    :param image_path:
+    :param image:
+    :param alignratio_path:
+    :return:
+    """
+    ## ----- compute align_ratio
+    align_ratio = (2 ** 16 - 1) / image.max()  # 65535 / max_val
+
     np.save(alignratio_path, align_ratio)
     uint16_image_gt = np.round(image * align_ratio).astype(np.uint16)
     cv2.imwrite(image_path, uint16_image_gt)
+    print("{:s} saved.".format(image_path))
+
     return None
 
+
 def generate_paths(folder, name):
+    """
+    :param folder:
+    :param name:
+    :return:
+    """
     id = name[:4]
-    image_path = os.path.join(folder, id+'.png')
-    alignratio_path = os.path.join(folder, id+'_alignratio.npy')
+    image_path = os.path.join(folder, id + '.png')
+    alignratio_path = os.path.join(folder, id + '_alignratio.npy')
     return image_path, alignratio_path
 
+
 def save_img(img, img_path, mode='RGB'):
+    """
+    :param img:
+    :param img_path:
+    :param mode:
+    :return:
+    """
     cv2.imwrite(img_path, img)
 
 
@@ -153,28 +197,33 @@ def save_npy(img, img_path):
 
 
 def calculate_psnr(img1, img2):
-    mse = np.mean((img1 - img2)**2)
+    mse = np.mean((img1 - img2) ** 2)
     if mse == 0:
         return float('inf')
     # return 20 * math.log10(255.0 / math.sqrt(mse))
     return 20 * math.log10(1.0 / math.sqrt(mse))
 
+
 def calculate_normalized_psnr(img1, img2, norm):
-    normalized_psnr = -10*np.log10(np.mean(np.power(img1/norm - img2/norm, 2)))
+    normalized_psnr = -10 * np.log10(np.mean(np.power(img1 / norm - img2 / norm, 2)))
     if normalized_psnr == 0:
         return float('inf')
     return normalized_psnr
 
+
 def mu_tonemap(hdr_image, mu=5000):
     return np.log(1 + mu * hdr_image) / np.log(1 + mu)
 
+
 def tanh_norm_mu_tonemap(hdr_image, norm_value, mu=5000):
     bounded_hdr = np.tanh(hdr_image / norm_value)
-    return  mu_tonemap(bounded_hdr, mu)
+    return mu_tonemap(bounded_hdr, mu)
+
 
 def calculate_tonemapped_psnr(res, ref, percentile=99, gamma=2.24):
     res = res ** gamma
     ref = ref ** gamma
     norm_perc = np.percentile(ref, percentile)
-    tonemapped_psnr = -10*np.log10(np.mean(np.power(tanh_norm_mu_tonemap(ref, norm_perc) - tanh_norm_mu_tonemap(res, norm_perc), 2)))
+    tonemapped_psnr = -10 * np.log10(
+        np.mean(np.power(tanh_norm_mu_tonemap(ref, norm_perc) - tanh_norm_mu_tonemap(res, norm_perc), 2)))
     return tonemapped_psnr

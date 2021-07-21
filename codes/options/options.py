@@ -1,14 +1,24 @@
+# encoding=utf-8
+
+import logging
 import os
 import os.path as osp
-import logging
+
 import yaml
 from utils.util import OrderedYaml
+
 Loader, Dumper = OrderedYaml()
 
 
 def parse(opt_path, is_train=True):
+    """
+    :param opt_path:
+    :param is_train:
+    :return:
+    """
     with open(opt_path, mode='r') as f:
         opt = yaml.load(f, Loader=Loader)
+
     # export CUDA_VISIBLE_DEVICES
     gpu_list = ','.join(str(x) for x in opt['gpu_ids'])
     os.environ['CUDA_VISIBLE_DEVICES'] = gpu_list
@@ -22,8 +32,10 @@ def parse(opt_path, is_train=True):
     for phase, dataset in opt['datasets'].items():
         phase = phase.split('_')[0]
         dataset['phase'] = phase
+
         if opt['distortion'] == 'sr':
             dataset['scale'] = scale
+
         is_lmdb = False
         if dataset.get('dataroot_GT', None) is not None:
             dataset['dataroot_GT'] = osp.expanduser(dataset['dataroot_GT'])
@@ -33,7 +45,9 @@ def parse(opt_path, is_train=True):
             dataset['dataroot_LQ'] = osp.expanduser(dataset['dataroot_LQ'])
             if dataset['dataroot_LQ'].endswith('lmdb'):
                 is_lmdb = True
+
         dataset['data_type'] = 'lmdb' if is_lmdb else 'img'
+
         if dataset['mode'].endswith('mc'):  # for memcached
             dataset['data_type'] = 'mc'
             dataset['mode'] = dataset['mode'].replace('_mc', '')
@@ -42,9 +56,11 @@ def parse(opt_path, is_train=True):
     for key, path in opt['path'].items():
         if path and key in opt['path'] and key != 'strict_load':
             opt['path'][key] = osp.expanduser(path)
+
     root_base = osp.abspath(osp.join(__file__, osp.pardir, osp.pardir, osp.pardir))
+
     if opt['path']['root'] is not None:
-         opt['path']['root'] = osp.join(root_base, opt['path']['root'])
+        opt['path']['root'] = osp.join(root_base, opt['path']['root'])
     else:
         opt['path']['root'] = root_base
     if is_train:
@@ -73,7 +89,12 @@ def parse(opt_path, is_train=True):
 
 
 def dict2str(opt, indent_l=1):
-    '''dict to string for logger'''
+    """
+    dict to string for logger
+    :param opt:
+    :param indent_l:
+    :return:
+    """
     msg = ''
     for k, v in opt.items():
         if isinstance(v, dict):

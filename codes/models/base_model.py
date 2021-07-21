@@ -1,3 +1,5 @@
+# encoding=utf-8
+
 import os
 from collections import OrderedDict
 import torch
@@ -7,6 +9,9 @@ from torch.nn.parallel import DistributedDataParallel
 
 class BaseModel():
     def __init__(self, opt):
+        """
+        :param opt:
+        """
         self.opt = opt
         self.device = torch.device('cuda' if opt['gpu_ids'] is not None else 'cpu')
         self.is_train = opt['is_train']
@@ -75,26 +80,45 @@ class BaseModel():
         return s, n
 
     def save_network(self, network, network_label, iter_label):
+        """
+        :param network:
+        :param network_label:
+        :param iter_label:
+        :return:
+        """
         save_filename = '{}_{}.pth'.format(iter_label, network_label)
         save_path = os.path.join(self.opt['path']['models'], save_filename)
+
         if isinstance(network, nn.DataParallel) or isinstance(network, DistributedDataParallel):
             network = network.module
+
         state_dict = network.state_dict()
         for key, param in state_dict.items():
             state_dict[key] = param.cpu()
+
         torch.save(state_dict, save_path)
+        print('{:s} saved.'.format(save_path))
 
     def load_network(self, load_path, network, strict=True):
+        """
+        :param load_path:
+        :param network:
+        :param strict:
+        :return:
+        """
         if isinstance(network, nn.DataParallel) or isinstance(network, DistributedDataParallel):
             network = network.module
         load_net = torch.load(load_path)
         load_net_clean = OrderedDict()  # remove unnecessary 'module.'
+
         for k, v in load_net.items():
             if k.startswith('module.'):
                 load_net_clean[k[7:]] = v
             else:
                 load_net_clean[k] = v
+
         network.load_state_dict(load_net_clean, strict=strict)
+        print('{:s} loaded.'.format(load_path))
 
     def save_training_state(self, epoch, iter_step):
         '''Saves training state during training, which will be used for resuming'''

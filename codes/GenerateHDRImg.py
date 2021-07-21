@@ -24,7 +24,7 @@ def gen_hdr(img_path, align_ratio_path, save_path):
 
 
 if __name__ == '__main__':
-    root = '../results/HDRUNet_tanh_l1_bs_16_ps_160/000_Valid_SingleFrame_FirstStage'
+    root = '../results/HDRUNet_tanh_l1_bs_48_ps_160/000_Valid_SingleFrame_FirstStage'
     # root = '../results/my'
 
     abs_path = os.path.abspath(root)
@@ -52,6 +52,9 @@ if __name__ == '__main__':
             continue
 
         hdr_path = res_dir + '/' + img_name[:-4] + '_hdr.png'
+
+        ## -----
         gen_hdr(img_path, alra_path, hdr_path)
+        ## -----
 
     print('Done.')

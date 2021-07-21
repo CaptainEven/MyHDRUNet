@@ -1,15 +1,19 @@
+# encoding=utf-8
+
 import logging
 from collections import OrderedDict
 
 import torch
 import torch.nn as nn
-from torch.nn.parallel import DataParallel, DistributedDataParallel
-import models.networks as networks
-import models.lr_scheduler as lr_scheduler
-from .base_model import BaseModel
 from models.customize_loss import tanh_L1Loss, tanh_L2Loss
+from torch.nn.parallel import DataParallel, DistributedDataParallel
+
+import codes.models.lr_scheduler as lr_scheduler
+import codes.models.networks as networks
+from .base_model import BaseModel
 
 logger = logging.getLogger('base')
+
 
 class GenerationModel(BaseModel):
     def __init__(self, opt):
@@ -27,6 +31,7 @@ class GenerationModel(BaseModel):
             self.netG = DistributedDataParallel(self.netG, device_ids=[torch.cuda.current_device()])
         else:
             self.netG = DataParallel(self.netG)
+
         # print network
         self.print_network()
         self.load()
@@ -83,16 +88,25 @@ class GenerationModel(BaseModel):
             self.log_dict = OrderedDict()
 
     def feed_data(self, data, need_GT=True):
+        """
+        :param data:
+        :param need_GT:
+        :return:
+        """
         self.var_L = data['LQ'].to(self.device)  # LQ
-        self.var_cond = data['cond'].to(self.device) # cond
-        
+        self.var_cond = data['cond'].to(self.device)  # cond
+
         if need_GT:
             self.real_H = data['GT'].to(self.device)  # GT
 
     def optimize_parameters(self, step):
+        """
+        :param step:
+        :return:
+        """
         self.optimizer_G.zero_grad()
-        self.fake_H = self.netG((self.var_L, self.var_cond))
-        
+        self.fake_H = self.netG.forward((self.var_L, self.var_cond))
+
         l_pix = self.l_pix_w * self.cri_pix(self.fake_H, self.real_H)
         l_pix.backward()
         self.optimizer_G.step()
@@ -101,39 +115,63 @@ class GenerationModel(BaseModel):
         self.log_dict['l_pix'] = l_pix.item()
 
     def test(self):
+        """
+        :return:
+        """
         self.netG.eval()
+
         with torch.no_grad():
-            self.fake_H = self.netG((self.var_L, self.var_cond))
+            self.fake_H = self.netG.forward((self.var_L, self.var_cond))
+
         self.netG.train()
 
     def get_current_log(self):
+        """
+        :return:
+        """
         return self.log_dict
 
     def get_current_visuals(self, need_GT=True):
+        """
+        :param need_GT:
+        :return:
+        """
         out_dict = OrderedDict()
         out_dict['LQ'] = self.var_L.detach()[0].float().cpu()
         out_dict['SR'] = self.fake_H.detach()[0].float().cpu()
-        
+
         if need_GT:
             out_dict['GT'] = self.real_H.detach()[0].float().cpu()
+
         return out_dict
 
     def print_network(self):
+        """
+        :return:
+        """
         s, n = self.get_network_description(self.netG)
         if isinstance(self.netG, nn.DataParallel) or isinstance(self.netG, DistributedDataParallel):
             net_struc_str = '{} - {}'.format(self.netG.__class__.__name__,
                                              self.netG.module.__class__.__name__)
         else:
             net_struc_str = '{}'.format(self.netG.__class__.__name__)
+
         if self.rank <= 0:
             logger.info('Network G structure: {}, with parameters: {:,d}'.format(net_struc_str, n))
             logger.info(s)
 
     def load(self):
+        """
+        :return:
+        """
         load_path_G = self.opt['path']['pretrain_model_G']
         if load_path_G is not None:
             logger.info('Loading model for G [{:s}] ...'.format(load_path_G))
             self.load_network(load_path_G, self.netG, self.opt['path']['strict_load'])
 
     def save(self, iter_label):
+        """
+        :param iter_label:
+        :return:
+        """
         self.save_network(self.netG, 'G', iter_label)

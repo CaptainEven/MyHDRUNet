@@ -127,10 +127,24 @@ def read_npy(path):
     """
     return np.load(path)
 
+
 def read_imgdata(path, ratio=255.0):
+    """
+    Read img and alignratio
+    :param path:
+    :param ratio:
+    :return:
+    """
     return cv2.imread(path, cv2.IMREAD_UNCHANGED) / ratio
 
+
 def expo_correct(img, exposures, idx):
+    """
+    :param img:
+    :param exposures:
+    :param idx:
+    :return:
+    """
     floating_exposures = exposures - exposures[1]
     gamma=2.24
     img_corrected = (((img**gamma)*2.0**(-1*floating_exposures[idx]))**(1/gamma))
@@ -142,16 +156,26 @@ def expo_correct(img, exposures, idx):
 ####################
 
 
-def augment(img_list, hflip=True, rot=True):
+def augment(img_list, h_flip=True, rot=True):
+    """
+    :param img_list:
+    :param h_flip:
+    :param rot:
+    :return:
+    """
     # horizontal flip OR rotate
-    hflip = hflip and random.random() < 0.5
-    vflip = rot and random.random() < 0.5
+    h_flip = h_flip and random.random() < 0.5
+    v_flip = rot and random.random() < 0.5
     rot90 = rot and random.random() < 0.5
 
     def _augment(img):
-        if hflip:
+        """
+        :param img:
+        :return:
+        """
+        if h_flip:
             img = img[:, ::-1, :]
-        if vflip:
+        if v_flip:
             img = img[::-1, :, :]
         if rot90:
             img = img.transpose(1, 0, 2)
@@ -161,6 +185,13 @@ def augment(img_list, hflip=True, rot=True):
 
 
 def augment_flow(img_list, flow_list, hflip=True, rot=True):
+    """
+    :param img_list:
+    :param flow_list:
+    :param hflip:
+    :param rot:
+    :return:
+    """
     # horizontal flip OR rotate
     hflip = hflip and random.random() < 0.5
     vflip = rot and random.random() < 0.5

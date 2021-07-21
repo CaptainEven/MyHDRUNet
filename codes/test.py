@@ -6,10 +6,10 @@ import os.path as osp
 import time
 from collections import OrderedDict
 
-import options.options as option
-import utils.util as util
+import codes.options.options as option
+import codes.utils.util as util
 from data import create_dataset, create_dataloader
-from models import create_model
+from codes.models import create_model
 
 #### options
 parser = argparse.ArgumentParser()
@@ -55,9 +55,9 @@ for test_loader in test_loaders:
         img_name = osp.splitext(osp.basename(img_path))[0]
 
         model.test()
-        visuals = model.get_current_visuals(need_GT=need_GT)
+        out_dict = model.get_current_visuals(need_GT=need_GT)
 
-        sr_img = util.tensor2numpy(visuals['SR'])
+        sr_img = util.tensor2numpy(out_dict['SR'])
         image_path, alignratio_path = util.generate_paths(dataset_dir, img_name)
         util.save_img_with_ratio(image_path, sr_img, alignratio_path)
 

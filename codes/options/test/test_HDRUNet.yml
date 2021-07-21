@@ -1,4 +1,4 @@
-name: HDRUNet_tanh_l1_bs_16_ps_160
+name: HDRUNet_tanh_l1_bs_48_ps_160
 model: condition
 distortion: sr
 scale: 1
@@ -25,4 +25,6 @@ network_G:
 path:
   root: ./
   # pretrain_model_G: ../experiments/HDRUNet_tanh_l1_bs_16_ps_160/models/latest_G.pth
-  pretrain_model_G: ../pretrained_models/pretrained_model.pth
+#  pretrain_model_G: ../pretrained_models/pretrained_model.pth
+  pretrain_model_G: ../pretrained_models/400_G.pth
+

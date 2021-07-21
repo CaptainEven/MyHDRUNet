@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.nn.init as init
 import torch.nn.functional as F
+import torch.nn.init as init
 
 
 def initialize_weights(net_l, scale=1):
@@ -51,15 +51,26 @@ class ResidualBlock_noBN(nn.Module):
         out = self.conv2(out)
         return identity + out
 
+
 class SFTLayer(nn.Module):
     def __init__(self, in_nc=32, out_nc=64, nf=32):
+        """
+        :param in_nc:
+        :param out_nc:
+        :param nf:
+        """
         super(SFTLayer, self).__init__()
+
         self.SFT_scale_conv0 = nn.Conv2d(in_nc, nf, 1)
         self.SFT_scale_conv1 = nn.Conv2d(nf, out_nc, 1)
         self.SFT_shift_conv0 = nn.Conv2d(in_nc, nf, 1)
         self.SFT_shift_conv1 = nn.Conv2d(nf, out_nc, 1)
 
     def forward(self, x):
+        """
+        :param x:
+        :return:
+        """
         # x[0]: fea; x[1]: cond
         scale = self.SFT_scale_conv1(F.leaky_relu(self.SFT_scale_conv0(x[1]), 0.1, inplace=True))
         shift = self.SFT_shift_conv1(F.leaky_relu(self.SFT_shift_conv0(x[1]), 0.1, inplace=True))
