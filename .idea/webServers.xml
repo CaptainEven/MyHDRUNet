@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="768b1a7e-86ae-44e8-b9fc-8239ef4e7bbe" name="HDRUNet">
+        <fileTransfer accessType="SFTP" host="192.168.1.211" port="22" sshConfigId="14a7900a-31fa-4bbb-8d57-94eb6a5f5551" sshConfig="jaya@192.168.1.211:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
