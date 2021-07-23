@@ -3,13 +3,23 @@
 import cv2
 import numpy as np
 
-def imread_uint16_png(image_path, alignratio_path):
+
+def imread_uint8(img_path):
+    """
+    :param img_path:
+    :return:
+    """
+    img = cv2.cvtColor(cv2.imread(img_path, cv2.IMREAD_UNCHANGED), cv2.COLOR_BGR2RGB)
+    return img
+
+
+def imread_uint16_png(img_path, alignratio_path):
     """
     This function loads a uint16 png image from the specified path and restore its original image range with
     the ratio stored in the specified alignratio.npy respective path.
 
     Args:
-        image_path (str): Path to the uint16 png image
+        img_path (str): Path to the uint16 png image
         alignratio_path (str): Path to the alignratio.npy file corresponding to the image
 
     Returns:
@@ -19,9 +29,10 @@ def imread_uint16_png(image_path, alignratio_path):
     align_ratio = np.load(alignratio_path).astype(np.float32)
 
     # Load image without changing bit depth and normalize by align ratio
-    img = cv2.cvtColor(cv2.imread(image_path, cv2.IMREAD_UNCHANGED), cv2.COLOR_BGR2RGB) / align_ratio
+    img = cv2.cvtColor(cv2.imread(img_path, cv2.IMREAD_UNCHANGED), cv2.COLOR_BGR2RGB) / align_ratio
+
     return img, align_ratio
-    
+
 
 def imwrite_uint16_png(image_path, image, alignratio_path):
     """ This function writes the hdr image as a uint16 png and stores its related align_ratio value in the specified paths.

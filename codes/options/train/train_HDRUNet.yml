@@ -43,7 +43,7 @@ path:
   root: ./
   # pretrain_model_G: ../experiments/...
 #  pretrain_model_G: ../pretrained_models/pretrained_model.pth
-  pretrain_model_G: ../experiments/HDRUNet_tanh_l1_bs_48_ps_160/models/3000_G.pth
+  pretrain_model_G: ../experiments/HDRUNet_tanh_l1_bs_48_ps_160/models/1000_G.pth
   strict_load: false
   # resume_state: ../experiments/...
 

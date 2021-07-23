@@ -1,5 +1,6 @@
 # encoding=utf-8
 
+import os
 import argparse
 import logging
 import os.path as osp
@@ -8,7 +9,7 @@ from collections import OrderedDict
 
 import codes.options.options as option
 import codes.utils.util as util
-from data import create_dataset, create_dataloader
+from codes.data import create_dataset, create_dataloader
 from codes.models import create_model
 
 #### options
@@ -51,15 +52,24 @@ for test_loader in test_loaders:
     for i, data in enumerate(test_loader):
         need_GT = False if test_loader.dataset.opt['dataroot_GT'] is None else True
         model.feed_data(data, need_GT=need_GT)
+
+        ## ----- Get image path and image name
         img_path = data['GT_path'][0] if need_GT else data['LQ_path'][0]
-        img_name = osp.splitext(osp.basename(img_path))[0]
+        img_name = os.path.split(img_path)[-1]
+
+        ## ----- Set up save path
+        save_img_path, alignratio_path = util.generate_paths(dataset_dir, img_name)
 
         model.test()
         out_dict = model.get_current_visuals(need_GT=need_GT)
 
+        ## ------ Post processing
         sr_img = util.tensor2numpy(out_dict['SR'])  # dtype: float32
-        image_path, alignratio_path = util.generate_paths(dataset_dir, img_name)
-        util.save_img_with_ratio(image_path, sr_img, alignratio_path)
 
-        ## logging
+        ## ----- Save output image
+        # util.save_img_with_ratio_uint16(save_img_path, alignratio_path, sr_img)
+        # util.save_img_with_ratio_uin8(save_img_path, alignratio_path, sr_img)
+        util.save_img_uint8(save_img_path, sr_img)
+
+        ## -----logging
         logger.info('{:20s} tested | {:d}/{:d}'.format(img_name, i + 1, len(test_loader)))

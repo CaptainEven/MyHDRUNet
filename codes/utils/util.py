@@ -152,19 +152,50 @@ def tensor2numpy(tensor):
     return img_np.astype(np.float32)
 
 
-def save_img_uin8(img_path, img):
+def save_img_uint8(img_path, img):
     """
     :param img_path:
     :param img:
     :return:
     """
+    ## ----- compute align_ratio
+    img_max_val = img.max()
+    print('IMG max val: ', img_max_val, end=' ')
+    align_ratio = (2 ** 8 - 1) / img_max_val  # 255 / max_val
+
+    uint8_image_gt = np.round(img * align_ratio).astype(np.uint8)
+
+    cv2.imwrite(img_path, uint8_image_gt)
+    print("{:s} saved.".format(img_path))
+
+    return None
 
 
-def save_img_with_ratio(img_path, img, alignratio_path):
+def save_img_with_ratio_uin8(img_path, alignratio_path, img):
     """
     :param img_path:
-    :param img:
     :param alignratio_path:
+    :param img:
+    :return:
+    """
+    ## ----- compute align_ratio
+    img_max_val = img.max()
+    print(img_max_val)
+    align_ratio = (2 ** 8 - 1) / img_max_val  # 255 / max_val
+
+    np.save(alignratio_path, align_ratio)
+    uint8_image_gt = np.round(img * align_ratio).astype(np.uint8)
+    cv2.imwrite(img_path, uint8_image_gt)
+    print("{:s} saved.".format(img_path))
+
+    return None
+
+
+def save_img_with_ratio_uint16(img_path, alignratio_path, img):
+    """
+    :param img_path:
+    :param alignratio_path:
+    :param img:
     :return:
     """
     ## ----- compute align_ratio
@@ -178,16 +209,17 @@ def save_img_with_ratio(img_path, img, alignratio_path):
     return None
 
 
-def generate_paths(folder, name):
+def generate_paths(folder, name, ext=".jpg"):
     """
     :param folder:
     :param name:
     :return:
     """
-    id = name[:4]
-    image_path = os.path.join(folder, id + '.png')
+    ext = name.split('.')[-1]
+    id = name[:-len(ext)]
+    img_path = os.path.join(folder, id + ext)
     alignratio_path = os.path.join(folder, id + '_alignratio.npy')
-    return image_path, alignratio_path
+    return img_path, alignratio_path
 
 
 def save_img(img, img_path, mode='RGB'):

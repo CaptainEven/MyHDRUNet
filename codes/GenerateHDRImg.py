@@ -14,13 +14,15 @@ def gen_hdr(img_path, align_ratio_path, save_path):
     :param save_path:
     :return:
     """
-    img, align_ratio = io.imread_uint16_png(img_path, align_ratio_path)
-    print('Align ratio: {:.5f}.'.format(align_ratio))
+    if os.path.isfile(align_ratio_path):
+        img, align_ratio = io.imread_uint16_png(img_path, align_ratio_path)
+        print('Align ratio: {:.5f}.'.format(align_ratio))
+    else:
+        img = io.imread_uint8(img_path)
 
     img = np.clip(np.tanh(img), 0, 1) * 255.0
     img = img.round().astype(np.uint8)
     cv2.imwrite(save_path, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-    print('{:s} saved.'.format(save_path))
 
 
 if __name__ == '__main__':
@@ -41,20 +43,23 @@ if __name__ == '__main__':
     img_path_list = [root + '/' + x for x in os.listdir(root) if x.endswith(ext)]
     alra_path_list =  [root + '/' + x for x in os.listdir(root) if x.endswith('.npy')]
 
-    assert len(img_path_list) == len(alra_path_list)
+    # assert len(img_path_list) == len(alra_path_list)
 
     for i, img_path in enumerate(img_path_list):
         img_name = os.path.split(img_path)[-1]
+
         alra_name = img_name[:-4] + '_alignratio.npy'
-        alra_path = root + '/' + alra_name
-        if not os.path.isfile(alra_path):
+        align_ratio_path = root + '/' + alra_name
+        # align_ratio_path = ''
+        if not os.path.isfile(align_ratio_path):
             print('[Warning]: alignratio file do not exist.')
             continue
 
         hdr_path = res_dir + '/' + img_name[:-4] + '_hdr.png'
 
         ## -----
-        gen_hdr(img_path, alra_path, hdr_path)
+        gen_hdr(img_path, align_ratio_path, hdr_path)
+        print('{:s} saved | {:d}/{:d}'.format(hdr_path, i + 1, len(img_path_list)))
         ## -----
 
     print('Done.')
