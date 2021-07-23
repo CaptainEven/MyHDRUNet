@@ -42,7 +42,8 @@ class LQGT_dataset(data.Dataset):
 
         LQ_name = os.path.split(LQ_path)[-1]
         HQ_name = LQ_name.replace("medium", "gt")
-        assert HQ_name == os.path.split(GT_path)[-1]
+        if HQ_name != os.path.split(GT_path)[-1]:
+            exit(-1)
 
         # # get GT alignratio
         # filename = osp.basename(LQ_path)[:4] + "_alignratio.npy"

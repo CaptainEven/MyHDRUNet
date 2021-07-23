@@ -80,6 +80,7 @@ def mkdir_and_rename(path):
 
         os.rename(path, new_name)
         print('{:s} renamed to {:s}.'.format(path, new_name))
+
     os.makedirs(path)
 
 
@@ -151,9 +152,17 @@ def tensor2numpy(tensor):
     return img_np.astype(np.float32)
 
 
-def save_img_with_ratio(image_path, img, alignratio_path):
+def save_img_uin8(img_path, img):
     """
-    :param image_path:
+    :param img_path:
+    :param img:
+    :return:
+    """
+
+
+def save_img_with_ratio(img_path, img, alignratio_path):
+    """
+    :param img_path:
     :param img:
     :param alignratio_path:
     :return:
@@ -163,8 +172,8 @@ def save_img_with_ratio(image_path, img, alignratio_path):
 
     np.save(alignratio_path, align_ratio)
     uint16_image_gt = np.round(img * align_ratio).astype(np.uint16)
-    cv2.imwrite(image_path, uint16_image_gt)
-    print("{:s} saved.".format(image_path))
+    cv2.imwrite(img_path, uint16_image_gt)
+    print("{:s} saved.".format(img_path))
 
     return None
 

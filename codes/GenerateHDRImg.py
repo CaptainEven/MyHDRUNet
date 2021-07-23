@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     assert len(img_path_list) == len(alra_path_list)
 
-    for img_path in img_path_list:
+    for i, img_path in enumerate(img_path_list):
         img_name = os.path.split(img_path)[-1]
         alra_name = img_name[:-4] + '_alignratio.npy'
         alra_path = root + '/' + alra_name

@@ -48,7 +48,7 @@ for test_loader in test_loaders:
     test_results = OrderedDict()
     test_results['psnr'] = []
 
-    for data in test_loader:
+    for i, data in enumerate(test_loader):
         need_GT = False if test_loader.dataset.opt['dataroot_GT'] is None else True
         model.feed_data(data, need_GT=need_GT)
         img_path = data['GT_path'][0] if need_GT else data['LQ_path'][0]
@@ -57,8 +57,9 @@ for test_loader in test_loaders:
         model.test()
         out_dict = model.get_current_visuals(need_GT=need_GT)
 
-        sr_img = util.tensor2numpy(out_dict['SR'])  # float32
+        sr_img = util.tensor2numpy(out_dict['SR'])  # dtype: float32
         image_path, alignratio_path = util.generate_paths(dataset_dir, img_name)
         util.save_img_with_ratio(image_path, sr_img, alignratio_path)
 
-        logger.info('{:20s}'.format(img_name))
+        ## logging
+        logger.info('{:20s} tested | {:d}/{:d}'.format(img_name, i + 1, len(test_loader)))

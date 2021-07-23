@@ -12,13 +12,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from progress_bar import ProgressBar
 
 
-def extract_sub():
+def extract_sub(root_name):
     """
     A multii-thread tool to crop sub imags.
     :return:
     """
-    input_dir = '/mnt/diskc/even/Ldr2HdrData/gt'
-    output_dir = '/mnt/diskc/even/Ldr2HdrData/gt_sub'
+    # root_name = "gt"  # "gt"  # "medium"
+
+    input_dir = '/mnt/diskc/even/Ldr2HdrData/{:s}'.format(root_name)
+    output_dir = '/mnt/diskc/even/Ldr2HdrData/{:s}_sub'.format(root_name)
 
     n_threads = 8  # number of threads: 1, 8, 10
     crop_sz = 480  # crop size
@@ -124,4 +126,8 @@ def worker(path, save_dir, crop_sz, step, thres_sz, compression_level, ext=".png
 
 
 if __name__ == '__main__':
-    extract_sub()
+    root_name = "gt"  # "medium"
+    extract_sub(root_name)
+    root_name = "medium"  # "medium"
+    extract_sub(root_name)
+
