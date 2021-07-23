@@ -1,12 +1,14 @@
 # encoding=utf-8
 
 import os
+import cv2
 import argparse
 import logging
 import os.path as osp
 import time
 from collections import OrderedDict
 
+import numpy as np
 import codes.options.options as option
 import codes.utils.util as util
 from codes.data import create_dataset, create_dataloader
@@ -14,10 +16,12 @@ from codes.models import create_model
 
 #### options
 parser = argparse.ArgumentParser()
+
 parser.add_argument('-opt',
                     type=str,
                     default='./options/test/test_HDRUNet.yml',
                     help='Path to options YMAL file.')
+
 opt = option.parse(parser.parse_args().opt, is_train=False)
 opt = option.dict_to_nonedict(opt)
 
@@ -50,8 +54,8 @@ for test_loader in test_loaders:
     test_results['psnr'] = []
 
     for i, data in enumerate(test_loader):
+        ## Need GT or not
         need_GT = False if test_loader.dataset.opt['dataroot_GT'] is None else True
-        model.feed_data(data, need_GT=need_GT)
 
         ## ----- Get image path and image name
         img_path = data['GT_path'][0] if need_GT else data['LQ_path'][0]
@@ -60,16 +64,28 @@ for test_loader in test_loaders:
         ## ----- Set up save path
         save_img_path, alignratio_path = util.generate_paths(dataset_dir, img_name)
 
+        ## ----- inference
+        model.feed_data(data, need_GT=need_GT)
         model.test()
         out_dict = model.get_current_visuals(need_GT=need_GT)
 
         ## ------ Post processing
-        sr_img = util.tensor2numpy(out_dict['SR'])  # dtype: float32
+        hdr = util.tensor2numpy(out_dict['SR'])  # dtype: float32 BGR
+
+        ## ----- Read in LDR image
+        ldr = cv2.imread(data["LQ_path"][0], cv2.IMREAD_COLOR)
+        h, w, c = ldr.shape
+
+        result = np.zeros((h*2, w, c), dtype=np.uint8)
+        hdr_uint8 = util.cvt2uint8(hdr)
+        result[:h, :, :] = ldr
+        result[h:2*h, :, :] = hdr_uint8
+        cv2.imwrite(save_img_path, result)
 
         ## ----- Save output image
-        # util.save_img_with_ratio_uint16(save_img_path, alignratio_path, sr_img)
-        # util.save_img_with_ratio_uin8(save_img_path, alignratio_path, sr_img)
-        util.save_img_uint8(save_img_path, sr_img)
+        # util.save_img_with_ratio_uint16(save_img_path, alignratio_path, hdr)
+        # util.save_img_with_ratio_uin8(save_img_path, alignratio_path, hdr)
+        # util.save_img_uint8(save_img_path, hdr)  # hdr
 
         ## -----logging
         logger.info('{:20s} tested | {:d}/{:d}'.format(img_name, i + 1, len(test_loader)))

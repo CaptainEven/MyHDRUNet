@@ -152,6 +152,21 @@ def tensor2numpy(tensor):
     return img_np.astype(np.float32)
 
 
+def cvt2uint8(img):
+    """
+    :param img:
+    :return:
+    """
+    ## ----- compute align_ratio
+    img_max_val = img.max()
+    print('IMG max val: ', img_max_val, end=' ')
+    align_ratio = (2 ** 8 - 1) / img_max_val  # 255 / max_val
+
+    uint8_img = np.round(img * align_ratio).astype(np.uint8)
+
+    return uint8_img
+
+
 def save_img_uint8(img_path, img):
     """
     :param img_path:
