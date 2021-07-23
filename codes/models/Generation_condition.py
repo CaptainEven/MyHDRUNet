@@ -118,12 +118,12 @@ class GenerationModel(BaseModel):
         """
         :return:
         """
-        self.netG.eval()
+        self.netG.eval()    # switch to eval mode
 
         with torch.no_grad():
             self.fake_H = self.netG.forward((self.var_L, self.var_cond))
 
-        self.netG.train()
+        self.netG.train()   # switch to train mode
 
     def get_current_log(self):
         """

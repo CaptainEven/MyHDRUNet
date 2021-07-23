@@ -57,7 +57,7 @@ for test_loader in test_loaders:
         model.test()
         out_dict = model.get_current_visuals(need_GT=need_GT)
 
-        sr_img = util.tensor2numpy(out_dict['SR'])
+        sr_img = util.tensor2numpy(out_dict['SR'])  # float32
         image_path, alignratio_path = util.generate_paths(dataset_dir, img_name)
         util.save_img_with_ratio(image_path, sr_img, alignratio_path)
 

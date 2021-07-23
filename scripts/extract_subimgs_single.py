@@ -17,8 +17,8 @@ def extract_sub():
     A multii-thread tool to crop sub imags.
     :return:
     """
-    input_dir = '/mnt/diskc/even/Ldr2HdrData/medium'
-    output_dir = '/mnt/diskc/even/Ldr2HdrData/medium_sub'
+    input_dir = '/mnt/diskc/even/Ldr2HdrData/gt'
+    output_dir = '/mnt/diskc/even/Ldr2HdrData/gt_sub'
 
     n_threads = 8  # number of threads: 1, 8, 10
     crop_sz = 480  # crop size

@@ -151,18 +151,18 @@ def tensor2numpy(tensor):
     return img_np.astype(np.float32)
 
 
-def save_img_with_ratio(image_path, image, alignratio_path):
+def save_img_with_ratio(image_path, img, alignratio_path):
     """
     :param image_path:
-    :param image:
+    :param img:
     :param alignratio_path:
     :return:
     """
     ## ----- compute align_ratio
-    align_ratio = (2 ** 16 - 1) / image.max()  # 65535 / max_val
+    align_ratio = (2 ** 16 - 1) / img.max()  # 65535 / max_val
 
     np.save(alignratio_path, align_ratio)
-    uint16_image_gt = np.round(image * align_ratio).astype(np.uint16)
+    uint16_image_gt = np.round(img * align_ratio).astype(np.uint16)
     cv2.imwrite(image_path, uint16_image_gt)
     print("{:s} saved.".format(image_path))
 

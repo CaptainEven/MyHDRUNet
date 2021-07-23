@@ -43,13 +43,13 @@ path:
   root: ./
   # pretrain_model_G: ../experiments/...
 #  pretrain_model_G: ../pretrained_models/pretrained_model.pth
-  pretrain_model_G: ../pretrained_models/400_G.pth
+  pretrain_model_G: ../pretrained_models/2500_G.pth
   strict_load: false
   # resume_state: ../experiments/...
 
 #### training settings: learning rate scheme, loss
 train:
-  lr_G: !!float 2e-4
+  lr_G: !!float 1e-4
   lr_scheme: MultiStepLR # MultiStepLR | CosineAnnealingLR_Restart
   beta1: 0.9
   beta2: 0.99
@@ -69,4 +69,4 @@ train:
 #### logger
 logger:
   print_freq: 10
-  save_checkpoint_freq: !!float 1000 # 5e3
+  save_checkpoint_freq: !!float 500 # 5e3

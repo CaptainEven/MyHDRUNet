@@ -66,6 +66,7 @@ def get_image_paths(data_type, data_root):
             paths = sorted(_get_paths_from_images(data_root))
         else:
             raise NotImplementedError('data_type [{:s}] is not recognized.'.format(data_type))
+
     return sizes, paths
 
 

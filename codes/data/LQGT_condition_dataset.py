@@ -1,5 +1,6 @@
 # encoding=utf-8
 
+import os
 import random
 
 import numpy as np
@@ -35,16 +36,22 @@ class LQGT_dataset(data.Dataset):
 
         # get LQ image
         LQ_path = self.paths_LQ[idx]
-        img_LQ = util.read_imgdata(LQ_path, ratio=255.0)
+
+        # get GT image
+        GT_path = self.paths_GT[idx]
+
+        LQ_name = os.path.split(LQ_path)[-1]
+        HQ_name = LQ_name.replace("medium", "gt")
+        assert HQ_name == os.path.split(GT_path)[-1]
 
         # # get GT alignratio
         # filename = osp.basename(LQ_path)[:4] + "_alignratio.npy"
         # ratio_path = osp.join(self.folder_ratio, filename)
         # alignratio = np.load(ratio_path).astype(np.float32)
-
-        # get GT image
-        GT_path = self.paths_GT[idx]
         alignratio = 255.0
+
+        ## Read img data
+        img_LQ = util.read_imgdata(LQ_path, ratio=255.0)
         img_GT = util.read_imgdata(GT_path, ratio=alignratio)
 
         if self.opt['phase'] == 'train':
@@ -91,3 +98,4 @@ class LQGT_dataset(data.Dataset):
 
     def __len__(self):
         return len(self.paths_GT)
+        # return len(self.paths_LQ)
