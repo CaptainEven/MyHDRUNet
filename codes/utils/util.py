@@ -152,19 +152,55 @@ def tensor2numpy(tensor):
     return img_np.astype(np.float32)
 
 
-def cvt2uint8(img):
+def cvt2uint16(img, tone_mapping=False):
     """
     :param img:
+    :param tone_mapping:
     :return:
     """
     ## ----- compute align_ratio
     img_max_val = img.max()
     print('IMG max val: ', img_max_val, end=' ')
-    align_ratio = (2 ** 8 - 1) / img_max_val  # 255 / max_val
 
-    uint8_img = np.round(img * align_ratio).astype(np.uint8)
+    align_ratio = (2 ** 16 - 1) / img_max_val  # 255 / max_val
+    print("align ratio: ", align_ratio)
 
-    return uint8_img
+    ## tone mapping
+    if tone_mapping:
+        img = np.clip(np.tanh(img), 0, 1) * align_ratio
+    else:
+        img = img * align_ratio
+
+    img = np.round(img).astype(np.uint16)
+
+    return img
+
+
+def cvt2uint8(img, tone_mapping=False):
+    """
+    :param img:
+    :param tone_mapping:
+    :return:
+    """
+    ## ----- compute align_ratio
+    img_max_val = img.max()
+    print('IMG max val: ', img_max_val, end=' ')
+
+    align_ratio = float(2 ** 8 - 1) / img_max_val  # 255 / max_val
+    print("align ratio: ", align_ratio)
+
+    ## tone mapping
+    if tone_mapping:
+        img = np.clip(np.tanh(img), 0, 1) * align_ratio
+    else:
+        img = img * align_ratio
+
+    img = np.round(img).astype(np.uint8)
+
+    return img
+
+    # uint8_img = np.round(img * align_ratio).astype(np.uint8)
+    # return uint8_img
 
 
 def save_img_uint8(img_path, img):
@@ -176,7 +212,9 @@ def save_img_uint8(img_path, img):
     ## ----- compute align_ratio
     img_max_val = img.max()
     print('IMG max val: ', img_max_val, end=' ')
+
     align_ratio = (2 ** 8 - 1) / img_max_val  # 255 / max_val
+    print("align ratio: ", align_ratio)
 
     uint8_image_gt = np.round(img * align_ratio).astype(np.uint8)
 
@@ -194,12 +232,18 @@ def save_img_with_ratio_uin8(img_path, alignratio_path, img):
     :return:
     """
     ## ----- compute align_ratio
-    img_max_val = img.max()
-    print(img_max_val)
-    align_ratio = (2 ** 8 - 1) / img_max_val  # 255 / max_val
+    img_max = img.max()
+    print("image max: {:.3f}".format(img_max), end=" ")
 
+    align_ratio = (2 ** 8 - 1) / img_max  # 255 / max_val
+    print("align ratio: {:.3f}".format(align_ratio))
+
+    ## save align ratio
     np.save(alignratio_path, align_ratio)
+
+    ## multipy align-ratio, rounding and convert to uint8
     uint8_image_gt = np.round(img * align_ratio).astype(np.uint8)
+
     cv2.imwrite(img_path, uint8_image_gt)
     print("{:s} saved.".format(img_path))
 
@@ -214,26 +258,33 @@ def save_img_with_ratio_uint16(img_path, alignratio_path, img):
     :return:
     """
     ## ----- compute align_ratio
-    align_ratio = (2 ** 16 - 1) / img.max()  # 65535 / max_val
+    img_max = img.max()
+    print("image max: {:.3f}".format(img_max), end=" ")
 
+    align_ratio = (2 ** 16 - 1) / img_max  # 65535 / max_val
+    print("align ratio: {:.3f}".format(align_ratio))
+
+    ## save align ratio
     np.save(alignratio_path, align_ratio)
+
+    ## multipy align-ratio, rounding and convert to uint16
     uint16_image_gt = np.round(img * align_ratio).astype(np.uint16)
+
     cv2.imwrite(img_path, uint16_image_gt)
     print("{:s} saved.".format(img_path))
 
     return None
 
 
-def generate_paths(folder, name, ext=".jpg"):
+def generate_paths(dir, name, ext=".png"):
     """
-    :param folder:
+    :param dir:
     :param name:
     :return:
     """
-    ext = name.split('.')[-1]
     id = name[:-len(ext)]
-    img_path = os.path.join(folder, id + ext)
-    alignratio_path = os.path.join(folder, id + '_alignratio.npy')
+    img_path = os.path.join(dir, id + ext)
+    alignratio_path = os.path.join(dir, id + '_alignratio.npy')
     return img_path, alignratio_path
 
 
@@ -248,11 +299,21 @@ def save_img(img, img_path, mode='RGB'):
 
 
 def save_npy(img, img_path):
+    """
+    :param img:
+    :param img_path:
+    :return:
+    """
     img = np.squeeze(img)
     np.save(img_path, img)
 
 
 def calculate_psnr(img1, img2):
+    """
+    :param img1:
+    :param img2:
+    :return:
+    """
     mse = np.mean((img1 - img2) ** 2)
     if mse == 0:
         return float('inf')
@@ -261,6 +322,12 @@ def calculate_psnr(img1, img2):
 
 
 def calculate_normalized_psnr(img1, img2, norm):
+    """
+    :param img1:
+    :param img2:
+    :param norm:
+    :return:
+    """
     normalized_psnr = -10 * np.log10(np.mean(np.power(img1 / norm - img2 / norm, 2)))
     if normalized_psnr == 0:
         return float('inf')
