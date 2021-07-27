@@ -6,6 +6,7 @@ import sys
 from multiprocessing import Pool
 
 import cv2
+import shutil
 import numpy as np
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -125,9 +126,56 @@ def worker(path, save_dir, crop_sz, step, thres_sz, compression_level, ext=".png
     return 'Processing {:s} ...'.format(img_name)
 
 
-if __name__ == '__main__':
-    root_name = "gt"  # "medium"
-    extract_sub(root_name)
-    root_name = "medium"  # "medium"
-    extract_sub(root_name)
+def mix_imgs(dir_list, dst_dir, ext=".jpg"):
+    """
+    :param dir_list:
+    :param dst_dir:
+    :param ext:
+    :return:
+    """
+    if len(dir_list) == 0:
+        print("[Err]: empty dir list.")
+        return
 
+    if not os.path.isdir(dst_dir):
+        os.makedirs(dst_dir)
+
+    for dir_path in dir_list:
+        if not os.path.isdir(dir_path):
+            print("[Warning]: dir {:s} is empty.".format(dir_path))
+            continue
+
+        src_img_paths = [dir_path + '/' + x for x in os.listdir(dir_path)
+                         if x.endswith(ext)]
+
+        for img_path in src_img_paths:
+            if not os.path.isfile(img_path):
+                print("[Warning]: empty image path.".format(img_path))
+                continue
+
+            img_name = os.path.split(img_path)[-1]
+
+            dst_path = dst_dir + '/' + img_name
+            shutil.copyfile(img_path, dst_path)
+            print("{:s} cp to {:s}".format(img_path, dst_dir))
+
+
+if __name__ == '__main__':
+    # root_name = "gt"  # "medium"
+    # extract_sub(root_name)
+
+    # root_name = "medium"  # "medium"
+    # extract_sub(root_name)
+
+    # root_name = "low"  # low
+    # extract_sub(root_name)
+    #
+    # mix_imgs(dir_list=["/mnt/diskc/even/Ldr2HdrData/low_sub",
+    #                    "/mnt/diskc/even/Ldr2HdrData/medium_sub"],
+    #          dst_dir="/mnt/diskc/even/Ldr2HdrData/mix_sub")
+
+    # root_name = "mef_gt"  # "GT"
+    # extract_sub(root_name)
+
+    root_name = "mef_high"  # "high"
+    extract_sub(root_name)

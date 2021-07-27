@@ -62,6 +62,7 @@ for test_loader in test_loaders:
         ## ----- Get image path and image name
         img_path = data['GT_path'][0] if need_GT else data['LQ_path'][0]
         img_name = os.path.split(img_path)[-1]
+        print("Processing {:s}...".format(img_name))
 
         ## ----- Set up save path
         # save_img_path, alignratio_path = util.generate_paths(dataset_dir, img_name, save_ext)
@@ -81,7 +82,7 @@ for test_loader in test_loaders:
 
         ## ----- convert to uint8 format
         # hdr_ = util.cvt2uint8(hdr, tone_mapping=False)
-        hdr_ = np.round(hdr * 255.0 + 0.5).astype(np.uint8)
+        hdr_ = np.clip(np.round(hdr * 255.0 + 0.5), 0, 255).astype(np.uint8)
 
         result = np.zeros((h * 2, w, c), dtype=np.uint8)
         result[:h, :, :] = ldr
@@ -91,10 +92,11 @@ for test_loader in test_loaders:
         cv2.imwrite(save_path, result)
         print("{:s} saved.".format(save_path))
 
-        ## ----- Save output image
-        # util.save_img_with_ratio_uint16(save_img_path, alignratio_path, hdr)
-        # util.save_img_with_ratio_uin8(save_img_path, alignratio_path, hdr)
-        # util.save_img_uint8(save_img_path, hdr)  # hdr
-
         ## -----logging
         logger.info('{:20s} tested | {:d}/{:d}\n'.format(img_name, i + 1, len(test_loader)))
+
+
+## ----- Save output image
+# util.save_img_with_ratio_uint16(save_img_path, alignratio_path, hdr)
+# util.save_img_with_ratio_uin8(save_img_path, alignratio_path, hdr)
+# util.save_img_uint8(save_img_path, hdr)  # hdr

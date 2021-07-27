@@ -21,6 +21,9 @@ class LQGT_dataset(data.Dataset):
         self.data_type = self.opt['data_type']
         self.paths_LQ, self.paths_GT = None, None
 
+        self.LQ_root = opt['dataroot_LQ']
+        self.GT_root = opt['dataroot_GT']
+
         self.sizes_LQ, self.paths_LQ = util.get_image_paths(self.data_type, opt['dataroot_LQ'])
         self.sizes_GT, self.paths_GT = util.get_image_paths(self.data_type, opt['dataroot_GT'])
         self.folder_ratio = opt['dataroot_ratio']
@@ -36,16 +39,37 @@ class LQGT_dataset(data.Dataset):
 
         # get LQ image
         LQ_path = self.paths_LQ[idx]
+        LQ_name = os.path.split(LQ_path)[-1]
+
+        # if "medium" in LQ_name:
+        #     HQ_name = LQ_name.replace("medium", "gt")  # medium exposure
+        # elif "low" in LQ_name:
+        #     HQ_name = LQ_name.replace("low", "gt")     # low exposure
+        # elif "over" in LQ_name:
+        #     HQ_name = LQ_name.replace("over", "gt")    # over exposure
+        # else:
+        #     print("[Warning]: wrong LQ name: {:s}".format(LQ_name))
 
         # get GT image
-        GT_path = self.paths_GT[idx]
+        # GT_path = self.paths_GT[idx]
 
-        LQ_name = os.path.split(LQ_path)[-1]
-        HQ_name = LQ_name.replace("medium", "gt")
-        if HQ_name != os.path.split(GT_path)[-1]:
+        ##@even:
+        # GT_path = self.GT_root + '/' + HQ_name
+        HQ_name = LQ_name
+        GT_path = self.GT_root + '/' + HQ_name
+
+        if not os.path.isfile(GT_path):
+            print("[Warning]: wrong GT path: {:s}, exit!!!".format(GT_path))
             exit(-1)
 
-        # # get GT alignratio
+        # LQ_name = os.path.split(LQ_path)[-1]
+        # HQ_name = LQ_name.replace("medium", "gt")
+        # HQ_name = LQ_name.replace("low", "gt")
+
+        # if HQ_name != os.path.split(GT_path)[-1]:
+        #     exit(-1)
+
+        ## get GT alignratio
         # filename = osp.basename(LQ_path)[:4] + "_alignratio.npy"
         # ratio_path = osp.join(self.folder_ratio, filename)
         # alignratio = np.load(ratio_path).astype(np.float32)
@@ -98,5 +122,5 @@ class LQGT_dataset(data.Dataset):
         return {'LQ': img_LQ, 'GT': img_GT, 'cond': cond, 'LQ_path': LQ_path, 'GT_path': GT_path}
 
     def __len__(self):
-        return len(self.paths_GT)
-        # return len(self.paths_LQ)
+        # return len(self.paths_GT)
+        return len(self.paths_LQ)

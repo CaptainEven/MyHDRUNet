@@ -1,4 +1,4 @@
-name: HDRUNet_tanh_l1_bs_48_ps_160
+name: HDRUNetLowlight  # HDRUNet_tanh_l1_bs_48_ps_160  HDRUNetTest
 model: condition
 distortion: sr
 scale: 1
@@ -10,7 +10,7 @@ datasets:
     mode: LQ_condition
 #    dataroot_LQ: /data0/NTIRE2021_HDR/000_Valid_SingleFrame_FirstStage/medium
 #    dataroot_LQ: ../dataset/NTIRE21_HDR_valid_input/medium
-    dataroot_LQ: ../dataset/my
+    dataroot_LQ: ../dataset/mef_lowlight
     condition: image
     
 #### network structures
@@ -26,5 +26,5 @@ path:
   root: ./
   # pretrain_model_G: ../experiments/HDRUNet_tanh_l1_bs_16_ps_160/models/latest_G.pth
 #  pretrain_model_G: ../pretrained_models/3000_G.pth
-  pretrain_model_G: ../experiments/HDRUNet_tanh_l1_bs_48_ps_160/models/2000_G.pth
+  pretrain_model_G: ../experiments/HDRUNet_tanh_l1_bs_48_ps_160/models/3000_G.pth
 
