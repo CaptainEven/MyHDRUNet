@@ -13,6 +13,11 @@ import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
 from data.data_sampler import DistIterSampler
+
+import sys
+
+sys.path.append('../')  # 加入路径，添加目录
+sys.path.append('.')
 from codes.utils import util
 
 from codes.data import create_dataloader, create_dataset
@@ -37,11 +42,11 @@ def init_dist(backend='nccl', **kwargs):
     dist.init_process_group(backend=backend, **kwargs)
 
 
-def main():
+def run_training():
     #### options
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-opt',
+    parser.add_argument('--opt',
                         type=str,
                         default='./options/train/train_HDRUNet.yml',
                         help='Path to option YMAL file.')
@@ -279,4 +284,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    run_training()
