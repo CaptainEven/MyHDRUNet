@@ -25,8 +25,8 @@ datasets:
   val:
     name: Single_LDR2HDR
     mode: LQGT_condition
-    dataroot_LQ: /mnt/diskc/even/Ldr2HdrData/medium_sub
-    dataroot_GT: /mnt/diskc/even/Ldr2HdrData/gt_sub
+    dataroot_LQ: /mnt/diskc/even/Ldr2HdrData/mef_low_sub
+    dataroot_GT: /mnt/diskc/even/Ldr2HdrData/mef_gt_sub
     dataroot_ratio: /data0/NTIRE2021_HDR/000_Valid_SingleFrame_FirstStage/alignratio
     condition: image
 
@@ -43,7 +43,7 @@ path:
   root: ./
   # pretrain_model_G: ../experiments/...
 #  pretrain_model_G: ../pretrained_models/pretrained_model.pth
-  pretrain_model_G: ../experiments/HDRUNet_tanh_l1_bs_48_ps_160/models/1000_G.pth
+  pretrain_model_G: ../experiments/HDRUNetLowlight/models/4500_G.pth
   strict_load: false
   # resume_state: ../experiments/...
 

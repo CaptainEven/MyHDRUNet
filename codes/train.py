@@ -226,48 +226,48 @@ def run_training():
                     logger.info(message)
                 start_time = time.time()
 
-            # validation
-            if current_step % opt['train']['val_freq'] == 0 and rank <= 0:
-                avg_psnr = 0.0
-                avg_normalized_psnr = 0.0
-                avg_tonemapped_psnr = 0.0
-                idx = 0
-                for val_data in val_loader:
-                    idx += 1
-                    # img_name = os.path.splitext(os.path.basename(val_data['LQ_path'][0]))[0]
-                    # img_dir = os.path.join(opt['path']['val_images'], img_name)
-                    # util.mkdir(img_dir)
-
-                    model.feed_data(val_data)
-                    model.test()
-
-                    visuals = model.get_current_visuals()
-
-                    sr_img = util.tensor2numpy(visuals['SR'])  # float32
-                    gt_img = util.tensor2numpy(visuals['GT'])  # float32
-
-                    # calculate PSNR
-                    avg_psnr += util.calculate_psnr(sr_img, gt_img)
-                    avg_normalized_psnr += util.calculate_normalized_psnr(sr_img, gt_img, np.max(gt_img))
-                    avg_tonemapped_psnr += util.calculate_tonemapped_psnr(sr_img, gt_img, percentile=99, gamma=2.24)
-
-                avg_psnr = avg_psnr / idx
-                avg_normalized_psnr = avg_normalized_psnr / idx
-                avg_tonemapped_psnr = avg_tonemapped_psnr / idx
-
-                # log
-                logger.info('# Validation # PSNR: {:.4e}, norm_PSNR: {:.4e}, mu_PSNR: {:.4e}'.format(avg_psnr,
-                                                                                                     avg_normalized_psnr,
-                                                                                                     avg_tonemapped_psnr))
-                logger_val = logging.getLogger('val')  # validation logger
-                logger_val.info('<epoch:{:3d}, iter:{:8,d}> psnr: {:.4e} norm_PSNR: {:.4e} mu_PSNR: {:.4e}'.format(
-                    epoch, current_step, avg_psnr, avg_normalized_psnr, avg_tonemapped_psnr))
-
-                # tensorboard logger
-                if opt['use_tb_logger'] and 'debug' not in opt['name']:
-                    tb_logger.add_scalar('psnr', avg_psnr, current_step)
-                    tb_logger.add_scalar('norm_PSNR', avg_normalized_psnr, current_step)
-                    tb_logger.add_scalar('mu_PSNR', avg_tonemapped_psnr, current_step)
+            # # validation
+            # if current_step % opt['train']['val_freq'] == 0 and rank <= 0:
+            #     avg_psnr = 0.0
+            #     avg_normalized_psnr = 0.0
+            #     avg_tonemapped_psnr = 0.0
+            #     idx = 0
+            #     for val_data in val_loader:
+            #         idx += 1
+            #         # img_name = os.path.splitext(os.path.basename(val_data['LQ_path'][0]))[0]
+            #         # img_dir = os.path.join(opt['path']['val_images'], img_name)
+            #         # util.mkdir(img_dir)
+            #
+            #         model.feed_data(val_data)
+            #         model.test()
+            #
+            #         visuals = model.get_current_visuals()
+            #
+            #         sr_img = util.tensor2numpy(visuals['SR'])  # float32
+            #         gt_img = util.tensor2numpy(visuals['GT'])  # float32
+            #
+            #         # calculate PSNR
+            #         avg_psnr += util.calculate_psnr(sr_img, gt_img)
+            #         avg_normalized_psnr += util.calculate_normalized_psnr(sr_img, gt_img, np.max(gt_img))
+            #         avg_tonemapped_psnr += util.calculate_tonemapped_psnr(sr_img, gt_img, percentile=99, gamma=2.24)
+            #
+            #     avg_psnr = avg_psnr / idx
+            #     avg_normalized_psnr = avg_normalized_psnr / idx
+            #     avg_tonemapped_psnr = avg_tonemapped_psnr / idx
+            #
+            #     # log
+            #     logger.info('# Validation # PSNR: {:.4e}, norm_PSNR: {:.4e}, mu_PSNR: {:.4e}'.format(avg_psnr,
+            #                                                                                          avg_normalized_psnr,
+            #                                                                                          avg_tonemapped_psnr))
+            #     logger_val = logging.getLogger('val')  # validation logger
+            #     logger_val.info('<epoch:{:3d}, iter:{:8,d}> psnr: {:.4e} norm_PSNR: {:.4e} mu_PSNR: {:.4e}'.format(
+            #         epoch, current_step, avg_psnr, avg_normalized_psnr, avg_tonemapped_psnr))
+            #
+            #     # tensorboard logger
+            #     if opt['use_tb_logger'] and 'debug' not in opt['name']:
+            #         tb_logger.add_scalar('psnr', avg_psnr, current_step)
+            #         tb_logger.add_scalar('norm_PSNR', avg_normalized_psnr, current_step)
+            #         tb_logger.add_scalar('mu_PSNR', avg_tonemapped_psnr, current_step)
 
             #### save models and training states
             if current_step % opt['logger']['save_checkpoint_freq'] == 0:

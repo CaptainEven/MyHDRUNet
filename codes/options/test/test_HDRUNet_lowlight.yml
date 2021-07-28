@@ -26,5 +26,5 @@ path:
   root: ./
   # pretrain_model_G: ../experiments/HDRUNet_tanh_l1_bs_16_ps_160/models/latest_G.pth
 #  pretrain_model_G: ../pretrained_models/3000_G.pth
-  pretrain_model_G: ../experiments/HDRUNet_tanh_l1_bs_48_ps_160/models/1000_G.pth
+  pretrain_model_G: ../experiments/HDRUNet_tanh_l1_bs_48_ps_160/models/4500_G.pth
 
