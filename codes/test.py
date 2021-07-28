@@ -4,6 +4,10 @@ import argparse
 import logging
 import os
 import os.path as osp
+import sys
+
+sys.path.append('../')
+
 import time
 from collections import OrderedDict
 
@@ -18,16 +22,17 @@ from codes.models import create_model
 #### options
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-opt',
+parser.add_argument('--opt',
                     type=str,
-                    default='./options/test/test_HDRUNet.yml',
+                    default='./options/test/test_HDRUNet_high.yml',  # './options/test/test_HDRUNet_lowlight.yml'
                     help='Path to options YMAL file.')
 
 opt = option.parse(parser.parse_args().opt, is_train=False)
 opt = option.dict_to_nonedict(opt)
 
 util.mkdirs((path for key, path in opt['path'].items()
-             if not key == 'experiments_root' and 'pretrain_model' not in key and 'resume' not in key))
+             if not key == 'experiments_root'
+             and 'pretrain_model' not in key and 'resume' not in key))
 util.setup_logger('base', opt['path']['log'], 'test_' + opt['name'],
                   level=logging.INFO,
                   screen=True,
@@ -94,7 +99,6 @@ for test_loader in test_loaders:
 
         ## -----logging
         logger.info('{:20s} tested | {:d}/{:d}\n'.format(img_name, i + 1, len(test_loader)))
-
 
 ## ----- Save output image
 # util.save_img_with_ratio_uint16(save_img_path, alignratio_path, hdr)

@@ -1,5 +1,5 @@
 #### general settings
-name: HDRUNet_over_exposure
+name: HDRUNetOverExposure
 model: condition
 use_tb_logger: true
 distortion: sr
@@ -43,7 +43,7 @@ path:
   root: ./
   # pretrain_model_G: ../experiments/...
 #  pretrain_model_G: ../pretrained_models/pretrained_model.pth
-  pretrain_model_G: ../experiments/HDRUNet_tanh_l1_bs_48_ps_160/models/28000_G.pth
+  pretrain_model_G: ../experiments/HDRUNet_over_exposure/models/500_G.pth
   strict_load: false
   # resume_state: ../experiments/...
 

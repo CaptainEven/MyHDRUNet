@@ -4,6 +4,7 @@ import argparse
 import logging
 import os
 import random
+import sys
 import time
 
 import math
@@ -14,10 +15,8 @@ import torch.distributed as dist
 import torch.multiprocessing as mp
 from data.data_sampler import DistIterSampler
 
-import sys
+sys.path.append('../')
 
-sys.path.append('../')  # 加入路径，添加目录
-sys.path.append('.')
 from codes.utils import util
 
 from codes.data import create_dataloader, create_dataset
@@ -48,7 +47,7 @@ def run_training():
 
     parser.add_argument('--opt',
                         type=str,
-                        default='./options/train/train_HDRUNet.yml',
+                        default='./options/train/train_HDRUNet_lowlight.yml',
                         help='Path to option YMAL file.')
     parser.add_argument('--launcher',
                         choices=['none', 'pytorch'],
@@ -211,7 +210,7 @@ def run_training():
             if current_step % opt['logger']['print_freq'] == 0:
                 end_time = time.time()
                 logs = model.get_current_log()
-                message = '<epoch: {:3d} | iter: {:8,d} | lr: {:.3e} | time: {:.3f}> '\
+                message = '<epoch: {:3d} | iter: {:8,d} | lr: {:.3e} | time: {:.3f}> ' \
                     .format(epoch,
                             current_step,
                             model.get_current_learning_rate(),
